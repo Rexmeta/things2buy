@@ -1,0 +1,47 @@
+{
+  "entities": {
+    "Post": {
+      "title": "Post",
+      "description": "A blog post",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string" },
+        "title": { "type": "string" },
+        "excerpt": { "type": "string" },
+        "content": { "type": "string" },
+        "coverImage": { "type": "string" },
+        "category": { "type": "string" },
+        "tags": { "type": "array" },
+        "date": { "type": "string" },
+        "author": { "type": "string" }
+      },
+      "required": ["id", "title", "content", "category", "date", "author"]
+    },
+    "Product": {
+      "title": "Product",
+      "description": "An affiliate product",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string" },
+        "name": { "type": "string" },
+        "price": { "type": "string" },
+        "rating": { "type": "number" },
+        "reviewCount": { "type": "number" },
+        "imageUrl": { "type": "string" },
+        "affiliateLink": { "type": "string" },
+        "description": { "type": "string" }
+      },
+      "required": ["id", "name", "price", "affiliateLink"]
+    }
+  },
+  "firestore": {
+    "/posts/{postId}": {
+      "schema": "Post",
+      "description": "Blog posts collection"
+    },
+    "/posts/{postId}/products/{productId}": {
+      "schema": "Product",
+      "description": "Products associated with a post"
+    }
+  }
+}

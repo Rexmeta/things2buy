@@ -1,0 +1,31 @@
+# Things2buy - Curated Shopping Guide for AI Agents
+
+## Overview
+Things2buy is a curated shopping blog that recommends high-quality products for specific occasions, travel destinations, and life events. The content is structured into guides, each containing a list of recommended products with descriptions, prices, and affiliate links.
+
+## Site Structure
+- **Home**: Latest guides and featured content.
+- **Categories**:
+  - /category/Travel: Travel essentials, packing lists.
+  - /category/Event: Gift guides for holidays (Valentine's, Christmas).
+  - /category/Anniversary: Thoughtful gifts for milestones.
+  - /category/Tech: Gadgets for home office and productivity.
+- **Posts**: Individual guides (e.g., /post/1) containing detailed product recommendations.
+
+## Content Format
+Each guide follows this structure:
+1. **Title**: Clear topic (e.g., "Top 5 Must-Haves for Japan").
+2. **Introduction**: Context and advice.
+3. **Product List**:
+   - Name
+   - Price
+   - Rating (out of 5)
+   - Review Count
+   - Description
+   - Affiliate Link
+
+## API Access (for Agents)
+Currently, content is available via HTML parsing. Future API endpoints will be documented here.
+
+## Contact
+For data access or partnership inquiries, contact admin@things2buy.app.
