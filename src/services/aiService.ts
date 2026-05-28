@@ -1,10 +1,4 @@
-import { GoogleGenAI } from "@google/genai";
-import { Product, Post } from "../data/posts";
-
-// Initialize Gemini API
-// Note: In a real app, this should be backend-only to protect the key.
-// Since this is a client-side demo, we use the env var directly.
-const ai = new GoogleGenAI({ apiKey: process.env.GEMINI_API_KEY });
+import { Product } from "../data/posts";
 
 interface GeneratedContent {
   title: string;
@@ -21,55 +15,20 @@ interface GeneratedContent {
 }
 
 export async function generatePostContent(topic: string): Promise<GeneratedContent> {
-  const model = "gemini-2.5-flash";
-  
-  const prompt = `
-    You are an expert shopping editor for a blog called "Things2buy".
-    Create a detailed shopping guide about "${topic}".
-    
-    Return a JSON object with the following structure:
-    {
-      "title": "Catchy, SEO-friendly title",
-      "excerpt": "Engaging 2-sentence summary",
-      "content": "Full article content in Markdown format. Include H2 and H3 headers. Do NOT include product list in the markdown, just the intro, advice, and conclusion.",
-      "category": "One of: Travel, Event, Anniversary, Tech, Home",
-      "tags": ["Array", "of", "5", "tags"],
-      "coverImageQuery": "A search query to find a relevant cover image on Unsplash",
-      "products": [
-        {
-          "name": "Specific product name 1",
-          "description": "Why this product is good (1 sentence)",
-          "searchKeyword": "Search query to find this exact item on AliExpress"
-        },
-        {
-          "name": "Specific product name 2",
-          "description": "Why this product is good (1 sentence)",
-          "searchKeyword": "Search query to find this exact item on AliExpress"
-        },
-        {
-          "name": "Specific product name 3",
-          "description": "Why this product is good (1 sentence)",
-          "searchKeyword": "Search query to find this exact item on AliExpress"
-        }
-      ]
-    }
-  `;
+  const response = await fetch('/api/generate-post', {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+      'x-admin-password': 'admin123' // Temporary password as hardcoded in server.ts
+    },
+    body: JSON.stringify({ topic })
+  });
 
-  try {
-    const result = await ai.models.generateContent({
-      model: model,
-      contents: [{ parts: [{ text: prompt }] }],
-      config: {
-        responseMimeType: "application/json"
-      }
-    });
-
-    const responseText = result.response.text();
-    return JSON.parse(responseText) as GeneratedContent;
-  } catch (error) {
-    console.error("Error generating content:", error);
-    throw new Error("Failed to generate content. Please try again.");
+  if (!response.ok) {
+    throw new Error('Failed to generate content: ' + response.statusText);
   }
+
+  return response.json();
 }
 
 // Mock function to simulate AliExpress API search

@@ -5,9 +5,11 @@ import { PostCard } from '../components/PostCard';
 import { CategoryFilter } from '../components/CategoryFilter';
 import { ArrowRight } from 'lucide-react';
 import { SEO } from '../components/SEO';
+import { RecommendationWizard } from '../components/RecommendationWizard';
 
 export function Home() {
   const [posts, setPosts] = useState<Post[]>([]);
+  const [recommendations, setRecommendations] = useState<any[] | null>(null);
   const [activeCategory, setActiveCategory] = useState('All');
   const [searchParams] = useSearchParams();
   const searchQuery = searchParams.get('q') || '';
@@ -53,7 +55,7 @@ export function Home() {
       />
 
       {/* Hero Section */}
-      {!searchQuery && featuredPost && (
+      {!searchQuery && !recommendations && featuredPost && (
         <section className="mb-16 rounded-3xl bg-slate-900 text-white overflow-hidden shadow-xl">
           <div className="grid md:grid-cols-2 gap-8 items-center">
             <div className="p-8 md:p-12 lg:p-16">
@@ -85,13 +87,23 @@ export function Home() {
         </section>
       )}
 
+      {!searchQuery && !recommendations && <RecommendationWizard onSearch={setRecommendations} />}
+
       {/* Latest Posts */}
       <section>
         <div className="flex flex-col md:flex-row md:items-center justify-between mb-8 gap-4">
           <h2 className="text-2xl font-bold text-slate-900">
-            {searchQuery ? `Search Results for "${searchQuery}"` : 'Latest Guides'}
+            {recommendations 
+              ? '추천 결과' 
+              : (searchQuery ? `Search Results for "${searchQuery}"` : 'Latest Guides')
+            }
           </h2>
-          {!searchQuery && (
+          {recommendations && (
+             <button onClick={() => setRecommendations(null)} className="text-indigo-600 font-semibold">
+               ← 돌아가기
+             </button>
+          )}
+          {!searchQuery && !recommendations && (
             <CategoryFilter 
               categories={categories} 
               activeCategory={activeCategory} 
@@ -100,11 +112,28 @@ export function Home() {
           )}
         </div>
         
-        <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
-          {filteredPosts.map(post => (
-            <PostCard key={post.id} post={post} />
-          ))}
-        </div>
+        {recommendations ? (
+          <div className="grid gap-6">
+            {recommendations.map((r, i) => (
+              <div key={i} className="p-6 rounded-2xl bg-white shadow-sm border border-slate-100 flex justify-between items-center">
+                <div>
+                  <h3 className="text-xl font-bold">{r.name}</h3>
+                  <p className="text-slate-600">{r.reason}</p>
+                </div>
+                <div className="text-right">
+                  <div className="font-bold text-lg text-indigo-600">{r.price}</div>
+                  <a href={r.link} className="mt-2 inline-block rounded-full bg-slate-900 text-white px-4 py-2 font-semibold text-sm">구매하기</a>
+                </div>
+              </div>
+            ))}
+          </div>
+        ) : (
+          <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
+            {filteredPosts.map(post => (
+              <PostCard key={post.id} post={post} />
+            ))}
+          </div>
+        )}
 
         {filteredPosts.length === 0 && (
           <div className="text-center py-12 text-slate-500">

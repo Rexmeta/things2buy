@@ -3,7 +3,8 @@ import { useParams, Link } from 'react-router-dom';
 import { getPost, getPosts, Post } from '../data/posts';
 import { PostCard } from '../components/PostCard';
 import { NewsletterSignup } from '../components/NewsletterSignup';
-import { ProductCard } from '../components/ProductCard';
+import { Breadcrumb } from '../components/Breadcrumb';
+import { ComparisonTable } from '../components/ComparisonTable';
 import { ArrowLeft, Calendar, User, Tag, Share2, Check, Clock } from 'lucide-react';
 import Markdown from 'react-markdown';
 import { SEO } from '../components/SEO';
@@ -176,12 +177,20 @@ export function PostDetail() {
       </div>
 
       <div className="container mx-auto px-4 py-12">
+        <Breadcrumb items={[
+          { label: 'Home', link: '/' },
+          { label: post.category },
+          { label: post.title },
+        ]} />
         <div className="grid gap-12 lg:grid-cols-[2fr_1fr]">
           {/* Main Content */}
           <div className="prose prose-lg prose-slate max-w-none">
             <p className="lead text-xl text-slate-600 font-medium mb-8">
               {post.excerpt}
             </p>
+            
+            <ComparisonTable products={post.products} />
+
             <Markdown>{post.content}</Markdown>
             
             <div className="mt-12 border-t pt-8">
@@ -202,12 +211,11 @@ export function PostDetail() {
           <aside className="space-y-8">
             <div className="sticky top-24 rounded-2xl border bg-slate-50 p-6 shadow-sm">
               <h3 className="mb-6 text-xl font-bold text-slate-900">
-                Featured Products
+                Quick Summary
               </h3>
-              <div className="space-y-6">
-                {post.products.map(product => (
-                  <ProductCard key={product.id} product={product} />
-                ))}
+              <div className="text-sm text-slate-600 space-y-4">
+                  <p><strong>Category:</strong> {post.category}</p>
+                  <p><strong>Reading Time:</strong> {readingTime} min</p>
               </div>
               <div className="mt-6 rounded-lg bg-indigo-50 p-4 text-xs text-indigo-800">
                 <strong>Disclosure:</strong> We may earn a commission if you click these links and make a purchase.

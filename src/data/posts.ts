@@ -1,12 +1,27 @@
 export interface Product {
   id: string;
   name: string;
-  price: string;
+  brand?: string;
+  price: number;
+  currency: 'USD' | 'KRW';
+  originalPrice?: number;
+  discountRate?: number;
   rating: number;
   reviewCount: number;
   imageUrl: string;
   affiliateLink: string;
   description: string;
+
+  bestFor: string;
+  pros: string[];
+  cons: string[];
+  whyRecommended: string;
+  avoidIf: string;
+  sourcePlatform: 'AliExpress' | 'Coupang' | 'Naver' | 'Amazon';
+  shippingInfo?: string;
+  lastCheckedAt: string;
+  clickCount?: number;
+  conversionScore?: number;
 }
 
 export interface Post {
@@ -43,5 +58,9 @@ export const savePost = async (post: Post): Promise<void> => {
 };
 
 export const deletePost = async (id: string): Promise<void> => {
-  throw new Error('Not implemented');
+  const response = await fetch(`/api/posts/${id}`, {
+    method: 'DELETE',
+    headers: { 'x-admin-password': 'admin123' },
+  });
+  if (!response.ok) throw new Error('Failed to delete post');
 };

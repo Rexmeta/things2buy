@@ -31,7 +31,9 @@ export function ProductCard({ product }: ProductCardProps) {
           {product.description}
         </p>
         <div className="mt-auto flex items-center justify-between">
-          <span className="text-lg font-bold text-slate-900">{product.price}</span>
+          <span className="text-lg font-bold text-slate-900">
+            {product.currency === 'KRW' ? '₩' : '$'}{product.price.toLocaleString()}
+          </span>
           <a
             href={product.affiliateLink}
             target="_blank"

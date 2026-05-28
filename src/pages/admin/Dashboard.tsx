@@ -7,13 +7,18 @@ export function Dashboard() {
   const [posts, setPosts] = useState<Post[]>([]);
 
   useEffect(() => {
-    setPosts(getPosts());
+    getPosts().then(setPosts).catch(console.error);
   }, []);
 
-  const handleDelete = (id: string) => {
+  const handleDelete = async (id: string) => {
     if (window.confirm('Are you sure you want to delete this post?')) {
-      deletePost(id);
-      setPosts(getPosts());
+      try {
+        await deletePost(id);
+        setPosts(prev => prev.filter(p => p.id !== id));
+      } catch (e) {
+        console.error(e);
+        alert('Failed to delete post');
+      }
     }
   };
 
