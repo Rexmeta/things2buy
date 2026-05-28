@@ -1,7 +1,9 @@
 export interface Product {
   id: string;
+  postId: string;
   name: string;
   brand?: string;
+  platform: 'AliExpress' | 'Coupang' | 'Naver' | 'Amazon';
   price: number;
   currency: 'USD' | 'KRW';
   originalPrice?: number;
@@ -10,14 +12,20 @@ export interface Product {
   reviewCount: number;
   imageUrl: string;
   affiliateLink: string;
-  description: string;
-
+  productUrl: string;
+  
+  // Decision Engine Fields
   bestFor: string;
+  avoidIf: string;
   pros: string[];
   cons: string[];
   whyRecommended: string;
-  avoidIf: string;
-  sourcePlatform: 'AliExpress' | 'Coupang' | 'Naver' | 'Amazon';
+  selectionCriteria: string;
+  rationale: string;
+  risks: string;
+  koreanUserCaveats: string;
+  reliabilityGrade: 'High' | 'Medium' | 'Low';
+  
   shippingInfo?: string;
   lastCheckedAt: string;
   clickCount?: number;
@@ -26,14 +34,30 @@ export interface Product {
 
 export interface Post {
   id: string;
+  slug: string;
   title: string;
   excerpt: string;
-  content: string; // Markdown content
-  coverImage: string;
+  content: string;
+  quickAnswer: string;
   category: 'Travel' | 'Event' | 'Anniversary' | 'Tech' | 'Home';
   tags: string[];
-  date: string;
+  
+  // SEO/AEO Fields
+  targetKeywords: string[];
+  searchIntent: string;
+  targetPersona: string;
+  
+  status: 'draft' | 'published';
   author: string;
+  createdAt: string;
+  updatedAt: string;
+  publishedAt?: string;
+  
+  coverImage: string;
+  seoTitle: string;
+  metaDescription: string;
+  canonicalUrl?: string;
+  
   products: Product[];
 }
 
@@ -56,7 +80,6 @@ export const savePost = async (post: Post): Promise<void> => {
   });
   if (!response.ok) throw new Error('Failed to save post');
 };
-
 export const deletePost = async (id: string): Promise<void> => {
   const response = await fetch(`/api/posts/${id}`, {
     method: 'DELETE',
@@ -64,3 +87,26 @@ export const deletePost = async (id: string): Promise<void> => {
   });
   if (!response.ok) throw new Error('Failed to delete post');
 };
+
+export interface Click {
+  id: string;
+  postId: string;
+  productId: string;
+  source: string;
+  referrer?: string;
+  userAgent?: string;
+  country?: string;
+  clickedAt: string;
+}
+
+export interface KeywordOpportunity {
+  id: string;
+  keyword: string;
+  intent: string;
+  difficulty: 'Easy' | 'Medium' | 'Hard';
+  estimatedTraffic: number;
+  monetizationScore: number;
+  trendScore: number;
+  source: string;
+  createdAt: string;
+}

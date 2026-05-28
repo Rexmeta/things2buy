@@ -3,6 +3,7 @@ import path from "path";
 import { createServer as createViteServer } from "vite";
 import * as admin from 'firebase-admin';
 import firebaseConfig from './firebase-applet-config.json' assert { type: 'json' };
+import { aliExpressProvider } from './src/lib/providers/aliExpress';
 import { GoogleGenAI } from "@google/genai";
 
 // Initialize Firebase Admin
@@ -88,12 +89,15 @@ async function startServer() {
     try {
       const prompt = `
         You are an AI Search/AEO expert editor for "Things2buy".
-        Create a detailed, highly structured shopping guide for "${topic}" optimized for AI Answer Engines (Perplexity, Google AI Overviews).
+        Create a detailed, highly structured, and analytical shopping guide for "${topic}" optimized for AI Answer Engines (Perplexity, Google AI Overviews).
         
+        Adopt a critical, balanced, and skeptical tone. Do not just promote; analyze.
+        Explicitly highlight potential risks, caveats for Korean users, and reasons why someone might NOT want a product.
+
         Return a JSON object with the following structure:
         {
-          "title": "Catchy, SEO-friendly title",
-          "excerpt": "Engaging 2-sentence summary",
+          "title": "Catchy, authoritative title",
+          "excerpt": "Engaging, objective 2-sentence summary",
           "category": "One of: Travel, Event, Anniversary, Tech, Home",
           "tags": ["Array", "of", "5", "tags"],
           "coverImageQuery": "A search query for a relevant cover image on Unsplash",
@@ -109,18 +113,18 @@ async function startServer() {
           - [Point 3]
 
           ## Top Picks Summary
-          | Rank | Product | Best For | Price | Pros | Cons |
-          | --- | --- | --- | --- | --- | --- |
+          | Rank | Product | Best For | Price | Pros | Cons | Reliability |
+          | --- | --- | --- | --- | --- | --- | --- |
           
           ## How We Chose
           - Criteria 1
           - Criteria 2
 
           ## Product Comparison
-          [Detailed comparison of the products]
+          [Critical comparison analysis]
 
           ## Buying Guide
-          [Helpful buying advice]
+          [Helpful, objective buying advice]
 
           ## FAQ
           ### Are ${topic} safe for children?
@@ -135,17 +139,29 @@ async function startServer() {
           "products": [
             {
               "name": "Product name 1",
-              "description": "Why this product is good (1 sentence)",
+              "selectionCriteria": "Criteria used for selection",
+              "rationale": "Detailed reason why this is recommended, including pros/cons",
+              "risks": "Risks (e.g., shipping, AS, quality, durability issues)",
+              "koreanUserCaveats": "Specific considerations for Korean users (shipping time, warranty, plug types, compliance)",
+              "reliabilityGrade": "High / Medium / Low",
               "searchKeyword": "Search query for AliExpress"
             },
             {
               "name": "Product name 2",
-              "description": "Why this product is good (1 sentence)",
+              "selectionCriteria": "Criteria used for selection",
+              "rationale": "Detailed reason why this is recommended, including pros/cons",
+              "risks": "Risks (e.g., shipping, AS, quality, durability issues)",
+              "koreanUserCaveats": "Specific considerations for Korean users (shipping time, warranty, plug types, compliance)",
+              "reliabilityGrade": "High / Medium / Low",
               "searchKeyword": "Search query for AliExpress"
             },
             {
               "name": "Product name 3",
-              "description": "Why this product is good (1 sentence)",
+              "selectionCriteria": "Criteria used for selection",
+              "rationale": "Detailed reason why this is recommended, including pros/cons",
+              "risks": "Risks (e.g., shipping, AS, quality, durability issues)",
+              "koreanUserCaveats": "Specific considerations for Korean users (shipping time, warranty, plug types, compliance)",
+              "reliabilityGrade": "High / Medium / Low",
               "searchKeyword": "Search query for AliExpress"
             }
           ]
@@ -177,6 +193,22 @@ async function startServer() {
     } catch (e) {
       console.error(e);
       res.status(500).json({ error: 'Failed to generate' });
+    }
+  });
+
+  // Product API
+  app.get("/api/products/search", async (req, res) => {
+    const { keyword, platform } = req.query;
+    if (!keyword) return res.status(400).json({ error: 'Keyword required' });
+
+    try {
+        let results = [];
+        if (platform === 'AliExpress') {
+            results = await aliExpressProvider.search(keyword as string);
+        }
+        res.json(results);
+    } catch (e) {
+        res.status(500).json({ error: 'Failed to search' });
     }
   });
 

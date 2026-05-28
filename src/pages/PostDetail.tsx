@@ -5,6 +5,7 @@ import { PostCard } from '../components/PostCard';
 import { NewsletterSignup } from '../components/NewsletterSignup';
 import { Breadcrumb } from '../components/Breadcrumb';
 import { ComparisonTable } from '../components/ComparisonTable';
+import { ProductControls } from '../components/ProductControls';
 import { ArrowLeft, Calendar, User, Tag, Share2, Check, Clock } from 'lucide-react';
 import Markdown from 'react-markdown';
 import { SEO } from '../components/SEO';
@@ -15,6 +16,7 @@ export function PostDetail() {
   const [allPosts, setAllPosts] = useState<Post[]>([]);
   const [loading, setLoading] = useState(true);
   const [copied, setCopied] = useState(false);
+  const [filteredProducts, setFilteredProducts] = useState<any[]>([]);
 
   useEffect(() => {
     async function fetchData() {
@@ -24,6 +26,7 @@ export function PostDetail() {
         getPosts()
       ]);
       setPost(postData);
+      setFilteredProducts(postData?.products || []);
       setAllPosts(allPostsData);
       setLoading(false);
     }
@@ -189,7 +192,8 @@ export function PostDetail() {
               {post.excerpt}
             </p>
             
-            <ComparisonTable products={post.products} />
+            <ProductControls products={post.products} onFilter={setFilteredProducts} />
+            <ComparisonTable products={filteredProducts} />
 
             <Markdown>{post.content}</Markdown>
             
