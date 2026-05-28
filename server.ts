@@ -17,6 +17,17 @@ async function startServer() {
 
   app.use(express.json());
 
+  // Simple Admin Auth Middleware
+  const adminAuth = (req: express.Request, res: express.Response, next: express.NextFunction) => {
+    const password = req.headers['x-admin-password'];
+    // In production, use a proper environment variable for this
+    if (password === 'admin123') { 
+        next();
+    } else {
+        res.status(401).json({ error: 'Unauthorized' });
+    }
+  };
+
   // API routes
   app.get("/api/posts", async (req, res) => {
     try {
@@ -29,10 +40,9 @@ async function startServer() {
     }
   });
 
-  app.post("/api/posts", async (req, res) => {
+  app.post("/api/posts", adminAuth, async (req, res) => {
      try {
          const post = req.body;
-         // In a real app, validate the post here
          await db.collection('posts').doc(post.id).set(post);
          res.status(201).json({ status: 'created' });
      } catch (e) {
@@ -48,6 +58,12 @@ async function startServer() {
       appType: "spa",
     });
     app.use(vite.middlewares);
+    
+    // Explicitly handle SPA fallback for dev mode
+    app.use('*', (req, res, next) => {
+        if (req.originalUrl.startsWith('/api')) return next();
+        res.sendFile(path.join(process.cwd(), 'index.html'));
+    });
   } else {
     const distPath = path.join(process.cwd(), 'dist');
     app.use(express.static(distPath));

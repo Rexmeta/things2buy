@@ -1,9 +1,22 @@
-import { Link } from 'react-router-dom';
+import { useState } from 'react';
+import { Link, useNavigate, useSearchParams } from 'react-router-dom';
 import { Search, ShoppingBag, User, LogOut } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
 
 export function Header() {
   const { isAuthenticated, logout } = useAuth();
+  const navigate = useNavigate();
+  const [searchParams] = useSearchParams();
+  const [query, setQuery] = useState(searchParams.get('q') || '');
+
+  const handleSearch = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (query.trim()) {
+      navigate(`/?q=${encodeURIComponent(query.trim())}`);
+    } else {
+      navigate('/');
+    }
+  };
 
   return (
     <header className="sticky top-0 z-50 w-full border-b bg-white/80 backdrop-blur-md">
@@ -22,14 +35,16 @@ export function Header() {
         </nav>
 
         <div className="flex items-center gap-4">
-          <div className="relative hidden sm:block">
+          <form onSubmit={handleSearch} className="relative hidden sm:block">
             <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-slate-400" />
             <input
               type="search"
               placeholder="Search items..."
+              value={query}
+              onChange={(e) => setQuery(e.target.value)}
               className="h-9 w-64 rounded-full border border-slate-200 bg-slate-50 pl-9 pr-4 text-sm outline-none focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500"
             />
-          </div>
+          </form>
           
           {isAuthenticated ? (
             <div className="flex items-center gap-2">

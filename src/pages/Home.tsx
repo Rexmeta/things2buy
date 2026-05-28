@@ -1,14 +1,16 @@
 import { useState, useEffect } from 'react';
+import { useSearchParams, Link } from 'react-router-dom';
 import { getPosts, Post } from '../data/posts';
 import { PostCard } from '../components/PostCard';
 import { CategoryFilter } from '../components/CategoryFilter';
-import { Link } from 'react-router-dom';
 import { ArrowRight } from 'lucide-react';
 import { SEO } from '../components/SEO';
 
 export function Home() {
   const [posts, setPosts] = useState<Post[]>([]);
   const [activeCategory, setActiveCategory] = useState('All');
+  const [searchParams] = useSearchParams();
+  const searchQuery = searchParams.get('q') || '';
 
   useEffect(() => {
     getPosts().then(setPosts);
@@ -16,9 +18,12 @@ export function Home() {
 
   const categories = Array.from(new Set(posts.map(post => post.category)));
   
-  const filteredPosts = activeCategory === 'All' 
-    ? posts 
-    : posts.filter(post => post.category === activeCategory);
+  const filteredPosts = posts.filter(post => {
+    const matchesCategory = activeCategory === 'All' || post.category === activeCategory;
+    const matchesSearch = post.title.toLowerCase().includes(searchQuery.toLowerCase()) || 
+                          post.excerpt.toLowerCase().includes(searchQuery.toLowerCase());
+    return matchesCategory && matchesSearch;
+  });
 
   const featuredPost = posts[0];
 
@@ -30,7 +35,7 @@ export function Home() {
     "description": "A curated shopping blog recommending must-buy items for events, travel, and anniversaries.",
     "potentialAction": {
       "@type": "SearchAction",
-      "target": `${window.location.origin}/search?q={search_term_string}`,
+      "target": `${window.location.origin}/?q={search_term_string}`,
       "query-input": "required name=search_term_string"
     }
   };
@@ -48,7 +53,7 @@ export function Home() {
       />
 
       {/* Hero Section */}
-      {featuredPost && (
+      {!searchQuery && featuredPost && (
         <section className="mb-16 rounded-3xl bg-slate-900 text-white overflow-hidden shadow-xl">
           <div className="grid md:grid-cols-2 gap-8 items-center">
             <div className="p-8 md:p-12 lg:p-16">
@@ -83,12 +88,16 @@ export function Home() {
       {/* Latest Posts */}
       <section>
         <div className="flex flex-col md:flex-row md:items-center justify-between mb-8 gap-4">
-          <h2 className="text-2xl font-bold text-slate-900">Latest Guides</h2>
-          <CategoryFilter 
-            categories={categories} 
-            activeCategory={activeCategory} 
-            onSelect={setActiveCategory} 
-          />
+          <h2 className="text-2xl font-bold text-slate-900">
+            {searchQuery ? `Search Results for "${searchQuery}"` : 'Latest Guides'}
+          </h2>
+          {!searchQuery && (
+            <CategoryFilter 
+              categories={categories} 
+              activeCategory={activeCategory} 
+              onSelect={setActiveCategory} 
+            />
+          )}
         </div>
         
         <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
@@ -99,7 +108,9 @@ export function Home() {
 
         {filteredPosts.length === 0 && (
           <div className="text-center py-12 text-slate-500">
-            No posts found in this category.
+            {searchQuery 
+              ? `No guides found matching "${searchQuery}".`
+              : 'No posts found in this category.'}
           </div>
         )}
       </section>

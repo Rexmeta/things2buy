@@ -318,12 +318,28 @@ export function PostEditor() {
               </div>
 
               <div>
-                <label className="mb-2 block text-sm font-medium text-slate-700">Cover Image URL</label>
+                <label className="mb-2 block text-sm font-medium text-slate-700">Cover Image</label>
                 <input
                   type="text"
                   value={post.coverImage}
                   onChange={e => setPost({ ...post, coverImage: e.target.value })}
                   className="w-full rounded-lg border border-slate-300 px-4 py-2 outline-none focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500"
+                  placeholder="Paste URL or upload file..."
+                />
+                <input
+                  type="file"
+                  accept="image/*"
+                  onChange={(e) => {
+                    const file = e.target.files?.[0];
+                    if (file) {
+                      const reader = new FileReader();
+                      reader.onloadend = () => {
+                        setPost({ ...post, coverImage: reader.result as string });
+                      };
+                      reader.readAsDataURL(file);
+                    }
+                  }}
+                  className="mt-2 w-full text-sm text-slate-500 file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-indigo-50 file:text-indigo-700 hover:file:bg-indigo-100"
                 />
                 {post.coverImage && (
                   <img src={post.coverImage} alt="Preview" className="mt-2 h-32 w-full rounded-lg object-cover" />

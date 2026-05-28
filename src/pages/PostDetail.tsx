@@ -1,22 +1,57 @@
 import { useState, useEffect } from 'react';
 import { useParams, Link } from 'react-router-dom';
-import { getPost, Post } from '../data/posts';
+import { getPost, getPosts, Post } from '../data/posts';
+import { PostCard } from '../components/PostCard';
+import { NewsletterSignup } from '../components/NewsletterSignup';
 import { ProductCard } from '../components/ProductCard';
-import { ArrowLeft, Calendar, User, Tag } from 'lucide-react';
+import { ArrowLeft, Calendar, User, Tag, Share2, Check, Clock } from 'lucide-react';
 import Markdown from 'react-markdown';
 import { SEO } from '../components/SEO';
 
 export function PostDetail() {
   const { id } = useParams();
   const [post, setPost] = useState<Post | undefined>(undefined);
+  const [allPosts, setAllPosts] = useState<Post[]>([]);
   const [loading, setLoading] = useState(true);
+  const [copied, setCopied] = useState(false);
 
   useEffect(() => {
-    if (id) {
-      setPost(getPost(id));
+    async function fetchData() {
+      setLoading(true);
+      const [postData, allPostsData] = await Promise.all([
+        id ? getPost(id) : Promise.resolve(undefined),
+        getPosts()
+      ]);
+      setPost(postData);
+      setAllPosts(allPostsData);
+      setLoading(false);
     }
-    setLoading(false);
+    fetchData();
   }, [id]);
+
+  const handleShare = async () => {
+    const shareData = {
+      title: post.title,
+      text: post.excerpt,
+      url: window.location.href,
+    };
+
+    if (navigator.share) {
+      try {
+        await navigator.share(shareData);
+      } catch (err) {
+        if (err instanceof Error && err.name === 'AbortError') return;
+        
+        await navigator.clipboard.writeText(window.location.href);
+        setCopied(true);
+        setTimeout(() => setCopied(false), 2000);
+      }
+    } else {
+      await navigator.clipboard.writeText(window.location.href);
+      setCopied(true);
+      setTimeout(() => setCopied(false), 2000);
+    }
+  };
 
   if (loading) {
     return <div className="container mx-auto px-4 py-12 text-center">Loading...</div>;
@@ -33,6 +68,15 @@ export function PostDetail() {
       </div>
     );
   }
+
+  const relatedPosts = allPosts
+    .filter(p => p.category === post.category && p.id !== post.id)
+    .slice(0, 3);
+
+  // Calculate reading time
+  const wordsPerMinute = 200;
+  const wordCount = (post.content || '').split(/\s+/).length;
+  const readingTime = Math.ceil(wordCount / wordsPerMinute);
 
   const schema = {
     "@context": "https://schema.org",
@@ -97,12 +141,20 @@ export function PostDetail() {
         />
         <div className="absolute inset-0 bg-gradient-to-t from-slate-900/80 to-transparent" />
         <div className="container mx-auto relative h-full flex flex-col justify-end px-4 pb-12">
-          <Link 
-            to="/" 
-            className="mb-6 inline-flex w-fit items-center gap-2 rounded-full bg-white/10 px-4 py-2 text-sm text-white backdrop-blur-sm transition-colors hover:bg-white/20"
-          >
-            <ArrowLeft className="h-4 w-4" /> Back to Guides
-          </Link>
+          <div className="flex justify-between items-end">
+            <Link 
+              to="/" 
+              className="mb-6 inline-flex w-fit items-center gap-2 rounded-full bg-white/10 px-4 py-2 text-sm text-white backdrop-blur-sm transition-colors hover:bg-white/20"
+            >
+              <ArrowLeft className="h-4 w-4" /> Back to Guides
+            </Link>
+            <button 
+              onClick={handleShare}
+              className="mb-6 inline-flex w-fit items-center gap-2 rounded-full bg-indigo-600 px-4 py-2 text-sm text-white transition-colors hover:bg-indigo-700"
+            >
+              {copied ? <><Check className="h-4 w-4" /> Copied!</> : <><Share2 className="h-4 w-4" /> Share</>}
+            </button>
+          </div>
           <div className="flex flex-wrap items-center gap-4 text-sm text-slate-200 mb-4">
             <span className="rounded-full bg-indigo-500 px-3 py-1 font-medium text-white">
               {post.category}
@@ -112,6 +164,9 @@ export function PostDetail() {
             </span>
             <span className="flex items-center gap-1">
               <User className="h-4 w-4" /> {post.author}
+            </span>
+            <span className="flex items-center gap-1">
+              <Clock className="h-4 w-4" /> {readingTime} min read
             </span>
           </div>
           <h1 className="text-3xl md:text-5xl font-bold text-white leading-tight max-w-4xl">
@@ -160,6 +215,19 @@ export function PostDetail() {
             </div>
           </aside>
         </div>
+
+        {/* Related Guides Section */}
+        {relatedPosts.length > 0 && (
+          <div className="mt-20 border-t pt-12">
+            <h2 className="text-2xl font-bold text-slate-900 mb-8">Related Guides</h2>
+            <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
+              {relatedPosts.map(p => (
+                <PostCard key={p.id} post={p} />
+              ))}
+            </div>
+          </div>
+        )}
+        <NewsletterSignup />
       </div>
     </article>
   );
