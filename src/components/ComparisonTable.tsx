@@ -3,9 +3,10 @@ import { ExternalLink, Check, X } from 'lucide-react';
 
 interface ComparisonTableProps {
   products: Product[];
+  postId?: string;
 }
 
-export function ComparisonTable({ products }: ComparisonTableProps) {
+export function ComparisonTable({ products, postId }: ComparisonTableProps) {
   return (
     <div className="overflow-x-auto my-12 rounded-2xl border border-slate-200">
       <table className="w-full text-sm text-left">
@@ -40,7 +41,7 @@ export function ComparisonTable({ products }: ComparisonTableProps) {
                 </ul>
               </td>
               <td className="px-6 py-4">
-                <a href={product.affiliateLink} target="_blank" rel="noopener noreferrer" className="inline-flex items-center gap-1 text-indigo-600 font-medium hover:underline">
+                <a href={`/go/${product.id}${postId ? `?postId=${encodeURIComponent(postId)}` : ''}`} target="_blank" rel="noopener noreferrer" className="inline-flex items-center gap-1 text-indigo-600 font-medium hover:underline">
                   Buy <ExternalLink className="h-3 w-3" />
                 </a>
               </td>

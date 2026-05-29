@@ -24,7 +24,7 @@ export function PostCard({ post }: PostCardProps) {
           </span>
           <span className="flex items-center gap-1">
             <Calendar className="h-3 w-3" />
-            {post.date}
+            {(post.publishedAt || post.createdAt).split('T')[0]}
           </span>
         </div>
         <Link to={`/post/${post.id}`}>
