@@ -11,7 +11,7 @@ import Markdown from 'react-markdown';
 import { SEO } from '../components/SEO';
 
 export function PostDetail() {
-  const { id } = useParams();
+  const { slug } = useParams();
   const [post, setPost] = useState<Post | undefined>(undefined);
   const [allPosts, setAllPosts] = useState<Post[]>([]);
   const [loading, setLoading] = useState(true);
@@ -22,7 +22,7 @@ export function PostDetail() {
     async function fetchData() {
       setLoading(true);
       const [postData, allPostsData] = await Promise.all([
-        id ? getPost(id) : Promise.resolve(undefined),
+        slug ? getPost(slug) : Promise.resolve(undefined),
         getPosts()
       ]);
       setPost(postData);
@@ -31,7 +31,7 @@ export function PostDetail() {
       setLoading(false);
     }
     fetchData();
-  }, [id]);
+  }, [slug]);
 
   const handleShare = async () => {
     const shareData = {

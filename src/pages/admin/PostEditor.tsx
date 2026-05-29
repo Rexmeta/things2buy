@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
-import { getPost, savePost, Post, Product } from '../../data/posts';
+import { createPostSlug, getPost, savePost, Post, Product } from '../../data/posts';
 import { Save, Plus, Trash2, ArrowLeft, Wand2, Loader2 } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import { generatePostContent, searchAliExpressProducts } from '../../services/aiService';
@@ -89,13 +89,14 @@ export function PostEditor() {
       const settings = getAliExpressSettings();
       const trackingId = settings.trackingId || 'default_tracking';
 
-      // 3. Search Products (Simulated)
+      // 3. Search and map products
       const products = await searchAliExpressProducts(generated.products, trackingId);
 
       // 4. Update Form
       setPost(prev => ({
         ...prev,
         title: generated.title,
+        slug: prev.slug || createPostSlug(generated.title, prev.id),
         excerpt: generated.excerpt,
         content: generated.content,
         category: generated.category,
@@ -107,7 +108,7 @@ export function PostEditor() {
         seoTitle: generated.seoTitle,
         metaDescription: generated.metaDescription,
         coverImage: `https://source.unsplash.com/random/1200x600/?${encodeURIComponent(generated.coverImageQuery)}`,
-        products: products
+        products: products.map(product => ({ ...product, postId: prev.id }))
       }));
       
       setShowAiPrompt(false);
@@ -121,7 +122,11 @@ export function PostEditor() {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    await savePost({ ...post, updatedAt: new Date().toISOString() });
+    await savePost({
+      ...post,
+      slug: post.slug || createPostSlug(post.title, post.id),
+      updatedAt: new Date().toISOString()
+    });
     navigate('/admin');
   };
 
