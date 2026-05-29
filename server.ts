@@ -16,8 +16,10 @@ db.settings({ databaseId: firebaseConfig.firestoreDatabaseId });
 const ai = new GoogleGenAI({ apiKey: process.env.GEMINI_API_KEY });
 // Simple rate limiter state: { [ip]: { count: number, timestamp: number } }
 const rateLimiter = new Map<string, { count: number, resetTime: number }>();
+const productSearchCache = new Map<string, { data: unknown[]; expiresAt: number }>();
 const RATE_LIMIT = 5; // requests per window
 const WINDOW_MS = 60 * 60 * 1000; // 1 hour
+const PRODUCT_CACHE_MS = 24 * 60 * 60 * 1000;
 
 async function startServer() {
   const app = express();
@@ -197,18 +199,93 @@ async function startServer() {
   });
 
   // Product API
-  app.get("/api/products/search", async (req, res) => {
+  app.get("/api/products/search", adminAuth, async (req, res) => {
     const { keyword, platform } = req.query;
     if (!keyword) return res.status(400).json({ error: 'Keyword required' });
 
     try {
+        const cacheKey = `${String(platform || 'AliExpress')}::${String(keyword).trim().toLowerCase()}`;
+        const cached = productSearchCache.get(cacheKey);
+        if (cached && cached.expiresAt > Date.now()) {
+          return res.json(cached.data);
+        }
+
         let results = [];
         if (platform === 'AliExpress') {
             results = await aliExpressProvider.search(keyword as string);
         }
+        productSearchCache.set(cacheKey, {
+          data: results,
+          expiresAt: Date.now() + PRODUCT_CACHE_MS
+        });
         res.json(results);
     } catch (e) {
-        res.status(500).json({ error: 'Failed to search' });
+        console.error(e);
+        res.json([]);
+    }
+  });
+
+  app.post("/api/clicks", async (req, res) => {
+    const { postId, productId, platform, affiliateLink, referrer, userAgent } = req.body || {};
+    if (!postId || !productId || !platform || !affiliateLink) {
+      return res.status(400).json({ error: 'postId, productId, platform, affiliateLink are required' });
+    }
+
+    try {
+      await db.collection('clicks').add({
+        postId,
+        productId,
+        platform,
+        affiliateLink,
+        referrer: referrer || null,
+        userAgent: userAgent || req.get('user-agent') || null,
+        clickedAt: admin.firestore.Timestamp.now()
+      });
+      res.status(201).json({ status: 'recorded' });
+    } catch (e) {
+      console.error(e);
+      res.status(500).json({ error: 'Failed to record click' });
+    }
+  });
+
+  app.get("/go/:productId", async (req, res) => {
+    const { productId } = req.params;
+    const postId = req.query.postId as string | undefined;
+
+    try {
+      const snapshot = await db.collection('posts').get();
+      let targetPostId = postId || '';
+      let product: any = null;
+
+      for (const doc of snapshot.docs) {
+        const data = doc.data() as any;
+        const products = Array.isArray(data.products) ? data.products : [];
+        const found = products.find((p: any) => p.id === productId);
+        if (found) {
+          targetPostId = targetPostId || doc.id;
+          product = found;
+          break;
+        }
+      }
+
+      if (!product || !product.affiliateLink) {
+        return res.status(404).send('Product not found');
+      }
+
+      await db.collection('clicks').add({
+        postId: targetPostId,
+        productId,
+        platform: product.platform || 'AliExpress',
+        affiliateLink: product.affiliateLink,
+        referrer: req.get('referer') || null,
+        userAgent: req.get('user-agent') || null,
+        clickedAt: admin.firestore.Timestamp.now()
+      });
+
+      res.redirect(302, product.affiliateLink);
+    } catch (e) {
+      console.error(e);
+      res.status(500).send('Failed to redirect');
     }
   });
 

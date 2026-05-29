@@ -3,9 +3,10 @@ import { Star, ExternalLink, ShoppingCart } from 'lucide-react';
 
 interface ProductCardProps {
   product: Product;
+  postId?: string;
 }
 
-export function ProductCard({ product }: ProductCardProps) {
+export function ProductCard({ product, postId }: ProductCardProps) {
   return (
     <div className="flex flex-col overflow-hidden rounded-xl border bg-white shadow-sm transition-all hover:shadow-md">
       <div className="aspect-square overflow-hidden bg-slate-50 p-4">
@@ -28,14 +29,14 @@ export function ProductCard({ product }: ProductCardProps) {
           <span className="text-xs text-slate-400">({product.reviewCount} reviews)</span>
         </div>
         <p className="mb-4 text-xs text-slate-500 line-clamp-2">
-          {product.description}
+          {product.whyRecommended || product.rationale}
         </p>
         <div className="mt-auto flex items-center justify-between">
           <span className="text-lg font-bold text-slate-900">
             {product.currency === 'KRW' ? '₩' : '$'}{product.price.toLocaleString()}
           </span>
           <a
-            href={product.affiliateLink}
+            href={`/go/${product.id}${postId ? `?postId=${encodeURIComponent(postId)}` : ''}`}
             target="_blank"
             rel="noopener noreferrer"
             className="flex items-center gap-2 rounded-lg bg-orange-500 px-4 py-2 text-sm font-medium text-white transition-colors hover:bg-orange-600"

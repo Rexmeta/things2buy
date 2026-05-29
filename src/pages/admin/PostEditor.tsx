@@ -8,25 +8,48 @@ import { getAliExpressSettings } from './Settings';
 
 const EMPTY_PRODUCT: Product = {
   id: '',
+  postId: '',
   name: '',
-  price: '',
+  platform: 'AliExpress',
+  price: 0,
+  currency: 'USD',
   rating: 5,
   reviewCount: 0,
   imageUrl: '',
   affiliateLink: '',
-  description: ''
+  productUrl: '',
+  bestFor: '',
+  avoidIf: '',
+  pros: [],
+  cons: [],
+  whyRecommended: '',
+  selectionCriteria: '',
+  rationale: '',
+  risks: '',
+  koreanUserCaveats: '',
+  reliabilityGrade: 'Medium',
+  lastCheckedAt: new Date().toISOString()
 };
 
 const EMPTY_POST: Post = {
   id: '',
+  slug: '',
   title: '',
   excerpt: '',
   content: '',
+  quickAnswer: '',
   coverImage: '',
   category: 'Tech',
   tags: [],
-  date: new Date().toISOString().split('T')[0],
+  targetKeywords: [],
+  searchIntent: '',
+  targetPersona: '',
+  status: 'draft',
   author: 'Admin',
+  createdAt: new Date().toISOString(),
+  updatedAt: new Date().toISOString(),
+  seoTitle: '',
+  metaDescription: '',
   products: []
 };
 
@@ -49,7 +72,8 @@ export function PostEditor() {
         }
       });
     } else {
-      setPost({ ...EMPTY_POST, id: Date.now().toString() });
+      const now = new Date().toISOString();
+      setPost({ ...EMPTY_POST, id: Date.now().toString(), createdAt: now, updatedAt: now });
     }
   }, [id]);
 
@@ -76,6 +100,12 @@ export function PostEditor() {
         content: generated.content,
         category: generated.category,
         tags: generated.tags,
+        quickAnswer: generated.quickAnswer,
+        targetKeywords: generated.targetKeywords,
+        searchIntent: generated.searchIntent,
+        targetPersona: generated.targetPersona,
+        seoTitle: generated.seoTitle,
+        metaDescription: generated.metaDescription,
         coverImage: `https://source.unsplash.com/random/1200x600/?${encodeURIComponent(generated.coverImageQuery)}`,
         products: products
       }));
@@ -91,14 +121,14 @@ export function PostEditor() {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    await savePost(post);
+    await savePost({ ...post, updatedAt: new Date().toISOString() });
     navigate('/admin');
   };
 
   const addProduct = () => {
     setPost({
       ...post,
-      products: [...post.products, { ...EMPTY_PRODUCT, id: Date.now().toString() }]
+      products: [...post.products, { ...EMPTY_PRODUCT, id: Date.now().toString(), postId: post.id }]
     });
   };
 
@@ -256,9 +286,10 @@ export function PostEditor() {
                     <div>
                       <label className="mb-1 block text-xs font-medium text-slate-500">Price</label>
                       <input
-                        type="text"
+                        type="number"
+                        step="0.01"
                         value={product.price}
-                        onChange={e => updateProduct(index, 'price', e.target.value)}
+                        onChange={e => updateProduct(index, 'price', Number(e.target.value) || 0)}
                         className="w-full rounded border border-slate-300 px-3 py-1.5 text-sm"
                       />
                     </div>
@@ -281,11 +312,11 @@ export function PostEditor() {
                       />
                     </div>
                     <div className="sm:col-span-2">
-                      <label className="mb-1 block text-xs font-medium text-slate-500">Description</label>
+                      <label className="mb-1 block text-xs font-medium text-slate-500">Why Recommended</label>
                       <textarea
                         rows={2}
-                        value={product.description}
-                        onChange={e => updateProduct(index, 'description', e.target.value)}
+                        value={product.whyRecommended}
+                        onChange={e => updateProduct(index, 'whyRecommended', e.target.value)}
                         className="w-full rounded border border-slate-300 px-3 py-1.5 text-sm"
                       />
                     </div>
