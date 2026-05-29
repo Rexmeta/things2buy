@@ -16,6 +16,7 @@ db.settings({ databaseId: firebaseConfig.firestoreDatabaseId });
 const ai = new GoogleGenAI({ apiKey: process.env.GEMINI_API_KEY });
 // Simple rate limiter state: { [ip]: { count: number, timestamp: number } }
 const rateLimiter = new Map<string, { count: number, resetTime: number }>();
+const productSearchCache = new Map<string, { data: unknown[]; expiresAt: number }>();
 const RATE_LIMIT = 5; // requests per window
 const WINDOW_MS = 60 * 60 * 1000; // 1 hour
 const PRODUCT_CACHE_MS = 24 * 60 * 60 * 1000;
