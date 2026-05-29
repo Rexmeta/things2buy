@@ -30,7 +30,7 @@ export default function App() {
         <Layout>
           <Routes>
             <Route path="/" element={<Home />} />
-            <Route path="/post/:id" element={<PostDetail />} />
+            <Route path="/post/:slug" element={<PostDetail />} />
             <Route path="/category/:category" element={<CategoryPage />} />
             <Route path="/login" element={<Login />} />
             

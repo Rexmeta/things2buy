@@ -11,18 +11,18 @@ import Markdown from 'react-markdown';
 import { SEO } from '../components/SEO';
 
 export function PostDetail() {
-  const { id } = useParams();
+  const { slug } = useParams();
   const [post, setPost] = useState<Post | undefined>(undefined);
   const [allPosts, setAllPosts] = useState<Post[]>([]);
   const [loading, setLoading] = useState(true);
   const [copied, setCopied] = useState(false);
-  const [filteredProducts, setFilteredProducts] = useState<any[]>([]);
+  const [filteredProducts, setFilteredProducts] = useState<Post['products']>([]);
 
   useEffect(() => {
     async function fetchData() {
       setLoading(true);
       const [postData, allPostsData] = await Promise.all([
-        id ? getPost(id) : Promise.resolve(undefined),
+        slug ? getPost(slug) : Promise.resolve(undefined),
         getPosts()
       ]);
       setPost(postData);
@@ -31,7 +31,7 @@ export function PostDetail() {
       setLoading(false);
     }
     fetchData();
-  }, [id]);
+  }, [slug]);
 
   const handleShare = async () => {
     const shareData = {
@@ -87,7 +87,7 @@ export function PostDetail() {
     "@type": "Article",
     "headline": post.title,
     "image": [post.coverImage],
-    "datePublished": post.date,
+    "datePublished": post.publishedAt || post.createdAt,
     "author": {
       "@type": "Person",
       "name": post.author
@@ -109,11 +109,11 @@ export function PostDetail() {
       "@type": "Product",
       "name": product.name,
       "image": product.imageUrl,
-      "description": product.description,
+      "description": product.whyRecommended || product.rationale,
       "offers": {
         "@type": "Offer",
-        "priceCurrency": "USD",
-        "price": product.price.replace('$', ''),
+        "priceCurrency": product.currency,
+        "price": product.price,
         "url": product.affiliateLink,
         "availability": "https://schema.org/InStock"
       },
@@ -132,7 +132,7 @@ export function PostDetail() {
         description={post.excerpt}
         image={post.coverImage}
         type="article"
-        publishedTime={post.date}
+        publishedTime={post.publishedAt || post.createdAt}
         author={post.author}
         schema={schema}
       />
@@ -164,7 +164,7 @@ export function PostDetail() {
               {post.category}
             </span>
             <span className="flex items-center gap-1">
-              <Calendar className="h-4 w-4" /> {post.date}
+              <Calendar className="h-4 w-4" /> {(post.publishedAt || post.createdAt).split('T')[0]}
             </span>
             <span className="flex items-center gap-1">
               <User className="h-4 w-4" /> {post.author}
@@ -193,7 +193,7 @@ export function PostDetail() {
             </p>
             
             <ProductControls products={post.products} onFilter={setFilteredProducts} />
-            <ComparisonTable products={filteredProducts} />
+            <ComparisonTable products={filteredProducts} postId={post.id} />
 
             <Markdown>{post.content}</Markdown>
             

@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
-import { getPosts, deletePost, Post } from '../../data/posts';
+import { deletePost, getPostPath, getPosts, Post } from '../../data/posts';
 import { Plus, Edit, Trash2, ExternalLink, Settings as SettingsIcon } from 'lucide-react';
 
 export function Dashboard() {
@@ -65,12 +65,12 @@ export function Dashboard() {
                       {post.category}
                     </span>
                   </td>
-                  <td className="px-6 py-4 text-slate-500">{post.date}</td>
+                  <td className="px-6 py-4 text-slate-500">{(post.publishedAt || post.createdAt).split('T')[0]}</td>
                   <td className="px-6 py-4 text-slate-500">{post.products.length} items</td>
                   <td className="px-6 py-4 text-right">
                     <div className="flex items-center justify-end gap-2">
                       <Link
-                        to={`/post/${post.id}`}
+                        to={getPostPath(post)}
                         className="rounded p-2 text-slate-400 hover:bg-slate-100 hover:text-indigo-600"
                         title="View"
                       >

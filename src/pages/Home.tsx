@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { useSearchParams, Link } from 'react-router-dom';
-import { getPosts, Post } from '../data/posts';
+import { getPostPath, getPosts, Post } from '../data/posts';
 import { PostCard } from '../components/PostCard';
 import { CategoryFilter } from '../components/CategoryFilter';
 import { ArrowRight } from 'lucide-react';
@@ -69,7 +69,7 @@ export function Home() {
                 {featuredPost.excerpt}
               </p>
               <Link 
-                to={`/post/${featuredPost.id}`}
+                to={getPostPath(featuredPost)}
                 className="inline-flex items-center gap-2 rounded-full bg-white px-6 py-3 font-semibold text-slate-900 transition-transform hover:scale-105"
               >
                 Read Full Guide <ArrowRight className="h-4 w-4" />

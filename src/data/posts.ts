@@ -28,6 +28,7 @@ export interface Product {
   
   shippingInfo?: string;
   lastCheckedAt: string;
+  lastClickedAt?: string;
   clickCount?: number;
   conversionScore?: number;
 }
@@ -61,6 +62,21 @@ export interface Post {
   products: Product[];
 }
 
+
+export const createPostSlug = (title: string, fallback: string): string => {
+  const slug = title
+    .toLowerCase()
+    .trim()
+    .replace(/[^a-z0-9]+/g, '-')
+    .replace(/^-+|-+$/g, '');
+
+  return slug || fallback;
+};
+
+export const getPostPath = (post: Pick<Post, 'id' | 'slug' | 'title'>): string => {
+  return `/post/${post.slug || createPostSlug(post.title, post.id)}`;
+};
+
 export const getPosts = async (): Promise<Post[]> => {
   const response = await fetch('/api/posts');
   if (!response.ok) throw new Error('Failed to fetch posts');
@@ -69,14 +85,19 @@ export const getPosts = async (): Promise<Post[]> => {
 
 export const getPost = async (id: string): Promise<Post | undefined> => {
   const posts = await getPosts();
-  return posts.find(p => p.id === id);
+  return posts.find(p => p.slug === id || p.id === id);
 };
 
 export const savePost = async (post: Post): Promise<void> => {
+  const normalizedPost = {
+    ...post,
+    slug: post.slug || createPostSlug(post.title, post.id)
+  };
+
   const response = await fetch('/api/posts', {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify(post),
+    body: JSON.stringify(normalizedPost),
   });
   if (!response.ok) throw new Error('Failed to save post');
 };
@@ -92,11 +113,28 @@ export interface Click {
   id: string;
   postId: string;
   productId: string;
-  source: string;
+  platform: Product['platform'];
+  affiliateLink: string;
   referrer?: string;
   userAgent?: string;
   country?: string;
   clickedAt: string;
+}
+
+export interface ProductIndex {
+  productId: string;
+  postId: string;
+  affiliateLink: string;
+  platform: Product['platform'];
+  name: string;
+  price: number;
+  currency: Product['currency'];
+  productUrl?: string;
+  imageUrl?: string;
+  clickCount?: number;
+  conversionScore?: number;
+  lastClickedAt?: string;
+  updatedAt: string;
 }
 
 export interface KeywordOpportunity {
